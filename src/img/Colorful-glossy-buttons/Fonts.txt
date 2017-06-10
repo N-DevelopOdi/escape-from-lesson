@@ -1,0 +1,5 @@
+FONTS: 
+
+- BPreplay Bold 
+- BPreplay Regular
+(http://www.fontsquirrel.com)

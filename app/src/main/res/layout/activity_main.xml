@@ -17,20 +17,23 @@
 	<TextView
 		android:text=""
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:layout_alignBottom="@+id/button"
+		android:layout_height="wrap_content"
 		android:layout_centerHorizontal="true" android:layout_marginBottom="74dp"
 		android:id="@+id/textView"/>
-	<Button
-		android:text="Свалить ли с пары?"
+
+	<ImageView
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:layout_alignParentTop="true"
-		android:layout_centerHorizontal="true" android:layout_marginTop="157dp"
-		android:id="@+id/button" android:onClick="onClick"/>
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" app:srcCompat="@android:drawable/alert_light_frame"
-        android:layout_alignBottom="@+id/textView" android:layout_toLeftOf="@+id/button"
-        android:layout_toStartOf="@+id/button" android:id="@+id/imageView"
-        android:visibility="gone"/>
+		android:layout_height="wrap_content" app:srcCompat="@android:drawable/alert_light_frame"
+		android:id="@+id/imageView"
+		android:visibility="gone" android:layout_below="@+id/textView"
+		android:layout_marginTop="145dp"/>
+	<ImageButton
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/imageButton"
+		android:layout_marginBottom="167dp"
+		android:background="@null"
+		app:srcCompat="@drawable/b12" android:layout_alignParentBottom="true"
+		android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
