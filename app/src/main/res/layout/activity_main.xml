@@ -21,19 +21,40 @@
 		android:layout_centerHorizontal="true" android:layout_marginBottom="74dp"
 		android:id="@+id/textView"/>
 
-	<ImageView
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content" app:srcCompat="@android:drawable/alert_light_frame"
-		android:id="@+id/imageView"
-		android:visibility="gone" android:layout_below="@+id/textView"
-		android:layout_marginTop="145dp"/>
 	<ImageButton
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
+		android:layout_height="64dp"
 		android:id="@+id/imageButton"
 		android:layout_marginBottom="167dp"
 		android:background="@null"
-		app:srcCompat="@drawable/b12" android:layout_alignParentBottom="true"
+		android:onClick="onClick"
+		app:srcCompat="@drawable/button1222"
+		android:layout_alignParentBottom="true"
 		android:layout_centerHorizontal="true"/>
+	<ImageView
+		android:layout_width="match_parent"
+		app:srcCompat="@drawable/escape1"
+		android:id="@+id/escape"
+		android:layout_height="140dp"
+		android:layout_marginRight="20dp"
+		android:layout_marginEnd="20dp"
+		android:layout_marginBottom="60dp"
+		android:layout_above="@+id/imageButton"
+		android:layout_alignRight="@+id/imageButton"
+		android:layout_alignEnd="@+id/imageButton" android:visibility="gone"/>
+
+	<ImageView
+		android:layout_width="match_parent"
+		app:srcCompat="@drawable/notescape1"
+		android:id="@+id/notescape"
+		android:layout_height="140dp"
+		android:layout_marginBottom="60dp"
+		android:layout_alignTop="@+id/escape"
+		android:layout_above="@+id/imageButton"
+		android:layout_alignLeft="@+id/imageButton"
+		android:layout_alignStart="@+id/imageButton"
+		android:layout_marginLeft="50dp"
+		android:layout_marginStart="50dp" android:visibility="gone"/>
+
 
 </RelativeLayout>
