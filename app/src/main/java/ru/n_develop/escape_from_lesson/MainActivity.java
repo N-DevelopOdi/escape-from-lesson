@@ -1,5 +1,6 @@
 package ru.n_develop.escape_from_lesson;
 
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,9 +9,15 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+
+import com.appodeal.ads.Appodeal;
+import com.appodeal.ads.InterstitialCallbacks;
+import com.appodeal.ads.SkippableVideoCallbacks;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -23,9 +30,17 @@ public class MainActivity extends AppCompatActivity
 
 	private Boolean escapeBool;
 
+	int countClick = 0;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
+
+		Appodeal.disableNetwork(this, "cheetah");
+		String appKey = "b813a660819ba4de319bc8cb913c6cac24411889cb75ef88";
+
+		Appodeal.confirm(Appodeal.SKIPPABLE_VIDEO);
+		Appodeal.initialize(this, appKey, Appodeal.INTERSTITIAL);
 
 
 		super.onCreate(savedInstanceState);
@@ -48,11 +63,17 @@ public class MainActivity extends AppCompatActivity
 		escapeImageView.setVisibility(View.GONE);
 		notEscapeImageView.setVisibility(View.GONE);
 		escape();
+
+		countClick++;
+
 	}
 
-	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener() {
+	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener()
+	{
 		@Override
-		public void onAnimationEnd(Animation animation) {
+		public void onAnimationEnd(Animation animation)
+		{
+
 			if (escapeBool)
 			{
 				notEscapeImageView.setVisibility(View.GONE);
@@ -63,15 +84,33 @@ public class MainActivity extends AppCompatActivity
 				escapeImageView.setVisibility(View.GONE);
 				notEscapeImageView.setVisibility(View.VISIBLE);
 			}
+
+			// делаем паузу в пол секунды перед рекламой
+			if (countClick % 10 == 0)
+			{
+				if(Appodeal.isLoaded(Appodeal.INTERSTITIAL))
+				{
+					new Handler().postDelayed(new Runnable() {
+						@Override
+						public void run() {
+							Appodeal.show(MainActivity.this, Appodeal.INTERSTITIAL);
+						}
+					}, 500);
+
+				}
+			}
+
 		}
 
 		@Override
-		public void onAnimationRepeat(Animation animation) {
+		public void onAnimationRepeat(Animation animation)
+		{
 			// TODO Auto-generated method stub
 		}
 
 		@Override
-		public void onAnimationStart(Animation animation) {
+		public void onAnimationStart(Animation animation)
+		{
 			// TODO Auto-generated method stub
 			if (escapeBool)
 			{
@@ -190,6 +229,9 @@ public class MainActivity extends AppCompatActivity
 //			result = "неудачный момент, чтобы слиться";
 		}
 	}
+
+
+
 
 
 
