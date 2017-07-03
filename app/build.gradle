@@ -29,4 +29,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-ads:9.8.0'
     compile 'com.google.android.gms:play-services-location:9.8.0'
     testCompile 'junit:junit:4.12'
+    compile files('libs/appodeal-1.15.9.jar')
 }

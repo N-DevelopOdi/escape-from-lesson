@@ -55,6 +55,14 @@
 		android:layout_alignStart="@+id/imageButton"
 		android:layout_marginLeft="50dp"
 		android:layout_marginStart="50dp" android:visibility="gone"/>
+	<ImageView
+		android:layout_width="wrap_content"
+		android:layout_height="200dp"
+		app:srcCompat="@drawable/name2"
+		android:id="@+id/imageView"
+		android:layout_toRightOf="@+id/escape"
+		android:layout_toEndOf="@+id/escape"
+	/>
 
 
 </RelativeLayout>
