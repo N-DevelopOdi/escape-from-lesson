@@ -3,21 +3,17 @@ package ru.n_develop.escape_from_lesson;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 import com.appodeal.ads.Appodeal;
-import com.appodeal.ads.InterstitialCallbacks;
-import com.appodeal.ads.SkippableVideoCallbacks;
 
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -30,7 +26,7 @@ public class MainActivity extends AppCompatActivity
 
 	private Boolean escapeBool;
 
-	int countClick = 0;
+	int countClick = 1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -41,7 +37,6 @@ public class MainActivity extends AppCompatActivity
 
 		Appodeal.confirm(Appodeal.SKIPPABLE_VIDEO);
 		Appodeal.initialize(this, appKey, Appodeal.INTERSTITIAL);
-
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
@@ -59,13 +54,16 @@ public class MainActivity extends AppCompatActivity
 
 	public void onClick (View view)
 	{
-
 		escapeImageView.setVisibility(View.GONE);
 		notEscapeImageView.setVisibility(View.GONE);
-		escape();
 
 		countClick++;
-
+		escape();
+		if (countClick == 2)
+		{
+			ImageButton bt = (ImageButton)findViewById(R.id.button);
+			bt.setImageResource(R.drawable.button);
+		}
 	}
 
 	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener()
@@ -86,7 +84,7 @@ public class MainActivity extends AppCompatActivity
 			}
 
 			// делаем паузу в пол секунды перед рекламой
-			if (countClick % 10 == 0)
+			if (countClick % 5 == 0)
 			{
 				if(Appodeal.isLoaded(Appodeal.INTERSTITIAL))
 				{
@@ -99,7 +97,6 @@ public class MainActivity extends AppCompatActivity
 
 				}
 			}
-
 		}
 
 		@Override
@@ -229,10 +226,5 @@ public class MainActivity extends AppCompatActivity
 //			result = "неудачный момент, чтобы слиться";
 		}
 	}
-
-
-
-
-
-
 }
+
