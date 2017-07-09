@@ -22,9 +22,17 @@ public class MainActivity extends AppCompatActivity
 
 	private ImageView escapeImageView;
 	private ImageView notEscapeImageView;
+
 	private Animation mFadeInAnimation;
+    private Animation mPreInAnimationLeft;
+    private Animation mPreOutAnimationLeft;
+    private Animation mPreInAnimationRight;
+    private Animation mPreOutAnimationRight;
+
+
 
 	private Boolean escapeBool;
+	private Boolean preAnim = false;
 
 	int countClick = 1;
 
@@ -50,6 +58,21 @@ public class MainActivity extends AppCompatActivity
 		mFadeInAnimation = AnimationUtils.loadAnimation(this, R.anim.alphain);
 		mFadeInAnimation.setAnimationListener(animationFadeInListener);
 
+
+        // подключаем файл анимации
+        mPreInAnimationLeft = AnimationUtils.loadAnimation(this, R.anim.alphain);
+        mPreInAnimationLeft.setAnimationListener(animationPreInListenerLeft);
+		// подключаем файл анимации
+		mPreOutAnimationLeft = AnimationUtils.loadAnimation(this, R.anim.alphaout);
+		mPreOutAnimationLeft.setAnimationListener(animationPreOutListenerLeft);
+
+        // подключаем файл анимации
+        mPreInAnimationRight = AnimationUtils.loadAnimation(this, R.anim.alphain);
+        mPreInAnimationRight.setAnimationListener(animationPreInListenerRight);
+        // подключаем файл анимации
+        mPreOutAnimationRight = AnimationUtils.loadAnimation(this, R.anim.alphaout);
+        mPreOutAnimationRight.setAnimationListener(animationPreOutListenerRight);
+
 	}
 
 	public void onClick (View view)
@@ -57,13 +80,41 @@ public class MainActivity extends AppCompatActivity
 		escapeImageView.setVisibility(View.GONE);
 		notEscapeImageView.setVisibility(View.GONE);
 
-		countClick++;
-		escape();
-		if (countClick == 2)
-		{
-			ImageButton bt = (ImageButton)findViewById(R.id.button);
-			bt.setImageResource(R.drawable.button);
-		}
+		escapeImageView.setImageResource(R.drawable.preescape);
+
+//		 при запуске начинаем с анимации исчезновения
+		escapeImageView.setVisibility(View.VISIBLE);
+		escapeImageView.startAnimation(mPreInAnimationLeft);
+
+        preAnim = true;
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                notEscapeImageView.setImageResource(R.drawable.prenotescape);
+                notEscapeImageView.setVisibility(View.VISIBLE);
+                notEscapeImageView.startAnimation(mPreInAnimationRight);
+
+            }
+        }, 300);
+
+
+		new Handler().postDelayed(new Runnable() {
+			@Override
+			public void run() {
+                preAnim = false;
+				countClick++;
+				escape();
+
+				if (countClick == 2)
+				{
+					ImageButton bt = (ImageButton)findViewById(R.id.button);
+					bt.setImageResource(R.drawable.button);
+				}
+			}
+		}, 5000);
+
+
 	}
 
 	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener()
@@ -122,6 +173,102 @@ public class MainActivity extends AppCompatActivity
 
 		}
 	};
+
+
+
+
+
+
+
+
+
+    Animation.AnimationListener animationPreOutListenerLeft = new Animation.AnimationListener() {
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            if (preAnim)
+            {
+                escapeImageView.startAnimation(mPreInAnimationLeft);
+//                notEscapeImageView.startAnimation(mPreInAnimationLeft);
+            }
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void onAnimationStart(Animation animation) {
+            // TODO Auto-generated method stub
+        }
+    };
+
+    Animation.AnimationListener animationPreInListenerLeft = new Animation.AnimationListener() {
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            if (preAnim)
+            {
+                escapeImageView.startAnimation(mPreOutAnimationLeft);
+//                notEscapeImageView.startAnimation(mPreOutAnimationLeft);
+            }
+
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void onAnimationStart(Animation animation) {
+            // TODO Auto-generated method stub
+        }
+    };
+
+    Animation.AnimationListener animationPreOutListenerRight = new Animation.AnimationListener() {
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            if (preAnim)
+            {
+//                escapeImageView.startAnimation(mPreInAnimationLeft);
+                notEscapeImageView.startAnimation(mPreInAnimationRight);
+            }
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void onAnimationStart(Animation animation) {
+            // TODO Auto-generated method stub
+        }
+    };
+
+    Animation.AnimationListener animationPreInListenerRight = new Animation.AnimationListener() {
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            if (preAnim)
+            {
+//                escapeImageView.startAnimation(mPreOutAnimationLeft);
+                notEscapeImageView.startAnimation(mPreOutAnimationRight);
+            }
+
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void onAnimationStart(Animation animation) {
+            // TODO Auto-generated method stub
+        }
+    };
 
 
 	private void escape ()
