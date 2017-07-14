@@ -20,14 +20,21 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile project(':cheetah-mobile-3.4.7')
+    compile project(':vksdk_library')
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile 'com.google.android.gms:play-services-ads:9.8.0'
     compile 'com.google.android.gms:play-services-location:9.8.0'
     testCompile 'junit:junit:4.12'
     compile files('libs/appodeal-1.15.9.jar')
+    apk files('libs/flurry-analytics-6.5.0.jar')
+    compile files('libs/applovin-6.3.0.jar')
+    compile files('libs/chartboost-6.6.1.jar')
+    compile files('libs/my-target-4.5.10.jar')
+    compile files('libs/unity-ads-2.0.4.jar')
+    compile files('libs/yandex-metrica-2.62.jar')
 }
