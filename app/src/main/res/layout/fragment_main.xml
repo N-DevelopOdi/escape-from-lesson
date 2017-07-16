@@ -12,15 +12,6 @@
 	tools:context="ru.n_develop.escape_from_lesson.MainActivity"
     android:background="@drawable/bg1">
 
-
-
-	<TextView
-		android:text=""
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_centerHorizontal="true" android:layout_marginBottom="74dp"
-		android:id="@+id/textView"/>
-
 	<ImageButton
 		android:layout_width="wrap_content"
 		android:layout_height="64dp"
@@ -54,6 +45,14 @@
 		android:layout_alignStart="@+id/button"
 		android:layout_marginLeft="50dp"
 		android:layout_marginStart="50dp" android:visibility="gone"/>
+	<ImageButton
+		android:layout_width="wrap_content"
+		android:layout_height="64dp"
+		android:id="@+id/buttonShare"
+		android:background="@null"
+		app:srcCompat="@drawable/button"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentEnd="true"/>
 
 
 </RelativeLayout>

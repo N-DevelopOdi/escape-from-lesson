@@ -26,7 +26,6 @@ public class Application extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.e("sdfsdf","sdfsdf");
         vkAccessTokenTracker.startTracking();
         VKSdk.initialize(this);
     }

@@ -1,11 +1,16 @@
 package ru.n_develop.escape_from_lesson;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +18,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.appodeal.ads.Appodeal;
@@ -26,13 +32,13 @@ import com.vk.sdk.api.photo.VKUploadImage;
 import com.vk.sdk.dialogs.VKShareDialog;
 import com.vk.sdk.dialogs.VKShareDialogBuilder;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
 
 public class MainFragment extends Fragment implements View.OnClickListener
 {
-
-	TextView textView;
 
 	private ImageView escapeImageView;
 	private ImageView notEscapeImageView;
@@ -50,6 +56,10 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	int countClick = 1;
 	View viewMain;
 
+	public RelativeLayout view1;
+	ImageView view2;
+	private static final String SCREEN_SHOTS_LOCATION = "/media";
+
 
 	private static final String[] sMyScope = new String[]{
 			VKScope.FRIENDS,
@@ -65,8 +75,9 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	{
 		viewMain = inflater.inflate(R.layout.fragment_main, container, false);
 		viewMain.findViewById(R.id.button).setOnClickListener(this);
+		viewMain.findViewById(R.id.buttonShare).setOnClickListener(this);
 
-		textView = (TextView) viewMain.findViewById(R.id.textView);
+		view1 = (RelativeLayout)viewMain.findViewById(R.id.fragment_main);
 
 		escapeImageView = (ImageView) viewMain.findViewById(R.id.escape);
 		notEscapeImageView = (ImageView) viewMain.findViewById(R.id.notescape);
@@ -74,7 +85,6 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		// подключаем файл анимации
 		mFadeInAnimation = AnimationUtils.loadAnimation(this.getContext(), R.anim.alphain);
 		mFadeInAnimation.setAnimationListener(animationFadeInListener);
-
 
         // подключаем файл анимации прелоадера
         mPreInAnimationLeft = AnimationUtils.loadAnimation(this.getContext(), R.anim.alphainpre);
@@ -91,44 +101,26 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		return viewMain;
 	}
 
-	public void onClick (View view)
+	public void onClick (final View view)
 	{
 
-		if (!VKSdk.isLoggedIn())
+		switch (view.getId())
 		{
-			VKSdk.login(MainFragment.this.getActivity(), sMyScope);
+			case R.id.button: buttonEscape(); break;
+			case R.id.buttonShare: buttonShare(view); break;
 		}
 
-		final Bitmap b = getPhoto();
-		VKPhotoArray photos = new VKPhotoArray();
-		photos.add(new VKApiPhoto("photo-47200925_314622346"));
-		new VKShareDialogBuilder()
-				.setText("I created this post with VK Android SDK\nSee additional information below\n#vksdk")
-				.setUploadedPhotos(photos)
-				.setAttachmentImages(new VKUploadImage[]{
-						new VKUploadImage(b, VKImageParameters.pngImage())
-				})
-				.setAttachmentLink("VK Android SDK information", "https://vk.com/dima_nofficial")
-				.setShareDialogListener(new VKShareDialog.VKShareDialogListener() {
-					@Override
-					public void onVkShareComplete(int postId) {
-						recycleBitmap(b);
-					}
-
-					@Override
-					public void onVkShareCancel() {
-						recycleBitmap(b);
-					}
-
-					@Override
-					public void onVkShareError(VKError error) {
-						recycleBitmap(b);
-					}
-				})
-				.show(getFragmentManager(), "VK_SHARE_DIALOG");
 
 
 
+
+
+
+
+	}
+
+	public void buttonEscape ()
+	{
 		escapeImageView.setVisibility(View.GONE);
 		notEscapeImageView.setVisibility(View.GONE);
 
@@ -138,23 +130,23 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		escapeImageView.setVisibility(View.VISIBLE);
 		escapeImageView.startAnimation(mPreInAnimationLeft);
 
-        preAnim = true;
+		preAnim = true;
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                notEscapeImageView.setImageResource(R.drawable.prenotescape);
-                notEscapeImageView.setVisibility(View.VISIBLE);
-                notEscapeImageView.startAnimation(mPreInAnimationRight);
+		new Handler().postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				notEscapeImageView.setImageResource(R.drawable.prenotescape);
+				notEscapeImageView.setVisibility(View.VISIBLE);
+				notEscapeImageView.startAnimation(mPreInAnimationRight);
 
-            }
-        }, 300);
+			}
+		}, 300);
 
 
 		new Handler().postDelayed(new Runnable() {
 			@Override
 			public void run() {
-                preAnim = false;
+				preAnim = false;
 				countClick++;
 				escape();
 
@@ -165,8 +157,118 @@ public class MainFragment extends Fragment implements View.OnClickListener
 				}
 			}
 		}, 3000);
+	}
+
+	public void buttonShare (View view)
+	{
+
+		if (hasConnection(MainFragment.this.getContext()))
+		{
+
+			if (!VKSdk.isLoggedIn())
+			{
+				// бработать отказ от разрещеения
+				VKSdk.login(MainFragment.this.getActivity(), sMyScope);
+			}
 
 
+			View v1 = view.getRootView();
+			v1.setDrawingCacheEnabled(true);
+
+			final Bitmap bm = v1.getDrawingCache();
+//			BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bm);
+
+			try
+			{
+				takeScreenShot(view1, "test1");
+				Log.e("success", "");
+			} catch (Exception e)
+			{
+				Log.e("error", "");
+			}
+
+//				final Bitmap b = getPhoto();
+			VKPhotoArray photos = new VKPhotoArray();
+//		photos.add(new VKApiPhoto("photo-47200925_314622346"));
+			new VKShareDialogBuilder()
+					.setText("I created this post with VK Android SDK\nSee additional information below\n#vksdk")
+//			.setUploadedPhotos(photos)
+					.setAttachmentImages(new VKUploadImage[]{
+							new VKUploadImage(bm, VKImageParameters.pngImage())
+					})
+					.setAttachmentLink("VK Android SDK information", "https://vk.com/dima_nofficial")
+					.setShareDialogListener(new VKShareDialog.VKShareDialogListener()
+					{
+						@Override
+						public void onVkShareComplete(int postId)
+						{
+							recycleBitmap(bm);
+						}
+
+						@Override
+						public void onVkShareCancel()
+						{
+							recycleBitmap(bm);
+						}
+
+						@Override
+						public void onVkShareError(VKError error)
+						{
+							recycleBitmap(bm);
+						}
+					})
+					.show(getFragmentManager(), "VK_SHARE_DIALOG");
+
+		}
+	}
+
+
+	public static boolean hasConnection(final Context context)
+	{
+		ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		if (wifiInfo != null && wifiInfo.isConnected())
+		{
+			Log.e("wifi", Boolean.toString(wifiInfo.isConnected()));
+			return true;
+		}
+		wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+		if (wifiInfo != null && wifiInfo.isConnected())
+		{
+			Log.e("mob", wifiInfo.toString());
+
+			return true;
+		}
+		wifiInfo = cm.getActiveNetworkInfo();
+		if (wifiInfo != null && wifiInfo.isConnected())
+		{
+			Log.e("3`", wifiInfo.toString());
+
+			return true;
+		}
+		return false;
+	}
+
+	public static void takeScreenShot(View view, String name) throws Exception {
+		view.setDrawingCacheEnabled(true);
+		view.buildDrawingCache();
+		Bitmap b = view.getDrawingCache();
+		FileOutputStream fos = null;
+
+		try {
+			File sddir = new File(SCREEN_SHOTS_LOCATION);
+			if (!sddir.exists()) {
+				sddir.mkdirs();
+			}
+			fos = new FileOutputStream(SCREEN_SHOTS_LOCATION + name + "_"
+					+ System.currentTimeMillis() + ".jpg");
+
+			if (fos != null) {
+				b.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+				fos.close();
+			}
+		} catch (Exception e) {
+		}
 	}
 
 	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener()
