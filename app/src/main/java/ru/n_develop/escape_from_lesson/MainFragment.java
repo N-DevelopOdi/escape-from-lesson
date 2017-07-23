@@ -1,12 +1,7 @@
 package ru.n_develop.escape_from_lesson;
 
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -20,15 +15,12 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.appodeal.ads.Appodeal;
-import com.vk.sdk.VKAccessToken;
-import com.vk.sdk.VKCallback;
+
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.model.VKApiPhoto;
 import com.vk.sdk.api.model.VKPhotoArray;
 import com.vk.sdk.api.photo.VKImageParameters;
 import com.vk.sdk.api.photo.VKUploadImage;
@@ -39,6 +31,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
+
+import ru.n_develop.escape_from_lesson.Helper.Connection;
 
 public class MainFragment extends Fragment implements View.OnClickListener
 {
@@ -51,7 +45,7 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	private Animation mPreOutAnimationLeft;
 	private Animation mPreInAnimationRight;
 	private Animation mPreOutAnimationRight;
-
+	private ImageButton bShare;
 
 	private Boolean escapeBool;
 	private Boolean preAnim = false;
@@ -60,9 +54,7 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	View viewMain;
 
 	public RelativeLayout view1;
-	ImageView view2;
 	private static final String SCREEN_SHOTS_LOCATION = "/media";
-
 
 	private static final String[] sMyScope = new String[]{
 			VKScope.FRIENDS,
@@ -73,6 +65,15 @@ public class MainFragment extends Fragment implements View.OnClickListener
 			VKScope.DOCS
 	};
 
+
+	/**
+	 *
+	 * СКРИН ДЕЛАЕТСЯ ОДИН И ТОТ ЖЕ
+     */
+
+
+
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
@@ -81,6 +82,9 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		viewMain.findViewById(R.id.buttonShare).setOnClickListener(this);
 
 		view1 = (RelativeLayout)viewMain.findViewById(R.id.fragment_main);
+
+		bShare= (ImageButton)viewMain.findViewById(R.id.buttonShare);
+		bShare.setVisibility(View.GONE);
 
 		escapeImageView = (ImageView) viewMain.findViewById(R.id.escape);
 		notEscapeImageView = (ImageView) viewMain.findViewById(R.id.notescape);
@@ -106,26 +110,18 @@ public class MainFragment extends Fragment implements View.OnClickListener
 
 	public void onClick (final View view)
 	{
-
 		switch (view.getId())
 		{
 			case R.id.button: buttonEscape(); break;
 			case R.id.buttonShare: buttonShare(view); break;
 		}
-
-
-
-
-
-
-
-
-	}
+    }
 
 	public void buttonEscape ()
 	{
 		escapeImageView.setVisibility(View.GONE);
 		notEscapeImageView.setVisibility(View.GONE);
+		bShare.setVisibility(View.GONE);
 
 		escapeImageView.setImageResource(R.drawable.preescape);
 
@@ -158,22 +154,21 @@ public class MainFragment extends Fragment implements View.OnClickListener
 					ImageButton bt = (ImageButton) viewMain.findViewById(R.id.button);
 					bt.setImageResource(R.drawable.button);
 				}
+				bShare.setVisibility(View.VISIBLE);
+
 			}
 		}, 3000);
 	}
 
 	public void buttonShare (View view)
 	{
-
-		if (hasConnection(MainFragment.this.getContext()))
+		if (Connection.hasConnection(MainFragment.this.getContext()))
 		{
-
 			if (!VKSdk.isLoggedIn())
 			{
 				// бработать отказ от разрещеения
 				VKSdk.login(MainFragment.this.getActivity(), sMyScope);
 			}
-
 
 			View v1 = view.getRootView();
 			v1.setDrawingCacheEnabled(true);
@@ -221,57 +216,7 @@ public class MainFragment extends Fragment implements View.OnClickListener
 						}
 					})
 					.show(getFragmentManager(), "VK_SHARE_DIALOG");
-
 		}
-	}
-
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		VKCallback<VKAccessToken> callback = new VKCallback<VKAccessToken>() {
-			@Override
-			public void onResult(VKAccessToken res) {
-				Log.e("onResult","onResult");
-				// User passed Authorization
-//				startTestActivity();
-			}
-
-			@Override
-			public void onError(VKError error) {
-				Log.e("onError","onError");
-
-				// User didn't pass Authorization
-			}
-		};
-
-		if (!VKSdk.onActivityResult(requestCode, resultCode, data, callback)) {
-			super.onActivityResult(requestCode, resultCode, data);
-		}
-	}
-
-	public static boolean hasConnection(final Context context)
-	{
-		ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-		if (wifiInfo != null && wifiInfo.isConnected())
-		{
-			Log.e("wifi", Boolean.toString(wifiInfo.isConnected()));
-			return true;
-		}
-		wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-		if (wifiInfo != null && wifiInfo.isConnected())
-		{
-			Log.e("mob", wifiInfo.toString());
-
-			return true;
-		}
-		wifiInfo = cm.getActiveNetworkInfo();
-		if (wifiInfo != null && wifiInfo.isConnected())
-		{
-			Log.e("3`", wifiInfo.toString());
-
-			return true;
-		}
-		return false;
 	}
 
 	public static void takeScreenShot(View view, String name) throws Exception {
@@ -352,14 +297,6 @@ public class MainFragment extends Fragment implements View.OnClickListener
 
 		}
 	};
-
-
-
-
-
-
-
-
 
     Animation.AnimationListener animationPreOutListenerLeft = new Animation.AnimationListener() {
 
@@ -500,7 +437,6 @@ public class MainFragment extends Fragment implements View.OnClickListener
 			escapeImageView.setVisibility(View.VISIBLE);
 			escapeImageView.startAnimation(mFadeInAnimation);
 
-
 //			result = "ребята, удачи вам, валите из этой дыры";
 //			result = "погода норм, пойдем гулять";
 //			result = "го за шаурмой";
@@ -554,14 +490,4 @@ public class MainFragment extends Fragment implements View.OnClickListener
 			bitmap.recycle();
 		}
 	}
-
-	private Bitmap getPhoto() {
-		try {
-			return BitmapFactory.decodeStream(getActivity().getAssets().open("android.jpg"));
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
 }
-
