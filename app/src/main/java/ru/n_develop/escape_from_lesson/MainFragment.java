@@ -1,12 +1,10 @@
 package ru.n_develop.escape_from_lesson;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +16,7 @@ import android.widget.RelativeLayout;
 
 import com.appodeal.ads.Appodeal;
 
+import com.vk.sdk.VKCallback;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.VKError;
@@ -27,9 +26,6 @@ import com.vk.sdk.api.photo.VKUploadImage;
 import com.vk.sdk.dialogs.VKShareDialog;
 import com.vk.sdk.dialogs.VKShareDialogBuilder;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Random;
 
 import ru.n_develop.escape_from_lesson.Helper.Connection;
@@ -54,7 +50,6 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	View viewMain;
 
 	public RelativeLayout view1;
-	private static final String SCREEN_SHOTS_LOCATION = "/media";
 
 	private static final String[] sMyScope = new String[]{
 			VKScope.FRIENDS,
@@ -64,15 +59,6 @@ public class MainFragment extends Fragment implements View.OnClickListener
 			VKScope.MESSAGES,
 			VKScope.DOCS
 	};
-
-
-	/**
-	 *
-	 * СКРИН ДЕЛАЕТСЯ ОДИН И ТОТ ЖЕ
-     */
-
-
-
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -113,9 +99,9 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		switch (view.getId())
 		{
 			case R.id.button: buttonEscape(); break;
-			case R.id.buttonShare: buttonShare(view); break;
+			case R.id.buttonShare: buttonShare(); break;
 		}
-    }
+	}
 
 	public void buttonEscape ()
 	{
@@ -160,85 +146,76 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		}, 3000);
 	}
 
-	public void buttonShare (View view)
+	/**
+	 * роблема при первом заходе в вк
+	 */
+	public void buttonShare ()
 	{
 		if (Connection.hasConnection(MainFragment.this.getContext()))
 		{
 			if (!VKSdk.isLoggedIn())
 			{
-				// бработать отказ от разрещеения
 				VKSdk.login(MainFragment.this.getActivity(), sMyScope);
 			}
 
-			View v1 = view.getRootView();
-			v1.setDrawingCacheEnabled(true);
-
-			final Bitmap bm = v1.getDrawingCache();
-//			BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bm);
-
-			try
-			{
-				takeScreenShot(view1, "test1");
-				Log.e("success", "");
-			} catch (Exception e)
-			{
-				Log.e("error", "");
-			}
-
-//				final Bitmap b = getPhoto();
-			VKPhotoArray photos = new VKPhotoArray();
-//		photos.add(new VKApiPhoto("photo-47200925_314622346"));
-			new VKShareDialogBuilder()
-					.setText("I created this post with VK Android SDK\nSee additional information below\n#vksdk")
-//			.setUploadedPhotos(photos)
-					.setAttachmentImages(new VKUploadImage[]{
-							new VKUploadImage(bm, VKImageParameters.pngImage())
-					})
-					.setAttachmentLink("VK Android SDK information", "https://vk.com/dima_nofficial")
-					.setShareDialogListener(new VKShareDialog.VKShareDialogListener()
+				VKSdk.wakeUpSession(MainFragment.this.getContext(), new VKCallback<VKSdk.LoginState>()
+				{
+					@Override
+					public void onResult(VKSdk.LoginState res)
 					{
-						@Override
-						public void onVkShareComplete(int postId)
+						switch (res)
 						{
-							recycleBitmap(bm);
+							case LoggedIn:
+								Share();
 						}
+					}
 
-						@Override
-						public void onVkShareCancel()
-						{
-							recycleBitmap(bm);
-						}
+					@Override
+					public void onError(VKError error)
+					{
 
-						@Override
-						public void onVkShareError(VKError error)
-						{
-							recycleBitmap(bm);
-						}
-					})
-					.show(getFragmentManager(), "VK_SHARE_DIALOG");
+					}
+				});
+
 		}
 	}
 
-	public static void takeScreenShot(View view, String name) throws Exception {
-		view.setDrawingCacheEnabled(true);
-		view.buildDrawingCache();
-		Bitmap b = view.getDrawingCache();
-		FileOutputStream fos = null;
+	public void Share ()
+	{
 
-		try {
-			File sddir = new File(SCREEN_SHOTS_LOCATION);
-			if (!sddir.exists()) {
-				sddir.mkdirs();
-			}
-			fos = new FileOutputStream(SCREEN_SHOTS_LOCATION + name + "_"
-					+ System.currentTimeMillis() + ".jpg");
+		View v1 = view1.getRootView();
+		v1.setDrawingCacheEnabled(false);
+		v1.setDrawingCacheEnabled(true);
 
-			if (fos != null) {
-				b.compress(Bitmap.CompressFormat.JPEG, 90, fos);
-				fos.close();
-			}
-		} catch (Exception e) {
-		}
+		final Bitmap screenshot = v1.getDrawingCache();
+
+		new VKShareDialogBuilder()
+				.setText("I created this post with VK Android SDK\nSee additional information below\n#vksdk")
+				.setAttachmentImages(new VKUploadImage[]{
+						new VKUploadImage(screenshot, VKImageParameters.pngImage())
+				})
+				.setAttachmentLink("VK Android SDK information", "https://vk.com/dima_nofficial")
+				.setShareDialogListener(new VKShareDialog.VKShareDialogListener()
+				{
+					@Override
+					public void onVkShareComplete(int postId)
+					{
+						recycleBitmap(screenshot);
+					}
+
+					@Override
+					public void onVkShareCancel()
+					{
+						recycleBitmap(screenshot);
+					}
+
+					@Override
+					public void onVkShareError(VKError error)
+					{
+						recycleBitmap(screenshot);
+					}
+				})
+				.show(getFragmentManager(), "VK_SHARE_DIALOG");
 	}
 
 	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener()

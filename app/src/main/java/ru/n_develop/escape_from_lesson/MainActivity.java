@@ -14,6 +14,9 @@ import com.vk.sdk.api.VKError;
 
 public class MainActivity extends AppCompatActivity
 {
+
+	MainFragment mf;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -24,9 +27,11 @@ public class MainActivity extends AppCompatActivity
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		mf = new MainFragment();
+
 		if (savedInstanceState == null)
 		{
-			getSupportFragmentManager().beginTransaction().add(R.id.container, new MainFragment()).commit();
+			getSupportFragmentManager().beginTransaction().add(R.id.container, mf).commit();
 		}
 	}
 
@@ -42,8 +47,8 @@ public class MainActivity extends AppCompatActivity
 			@Override
 			public void onResult(VKAccessToken res) {
 				Log.e("onResult","onResult");
-				// User passed Authorization
-//				startTestActivity();
+				getSupportFragmentManager().findFragmentById(R.id.fragment_main);
+				mf.buttonShare();
 			}
 
 			@Override
