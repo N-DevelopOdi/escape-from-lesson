@@ -45,6 +45,7 @@ public class MainFragment extends Fragment implements View.OnClickListener
 
 	private Boolean escapeBool;
 	private Boolean preAnim = false;
+	private Boolean startAnim = true;
 
 	int countClick = 1;
 	View viewMain;
@@ -105,45 +106,57 @@ public class MainFragment extends Fragment implements View.OnClickListener
 
 	public void buttonEscape ()
 	{
-		escapeImageView.setVisibility(View.GONE);
-		notEscapeImageView.setVisibility(View.GONE);
-		bShare.setVisibility(View.GONE);
 
-		escapeImageView.setImageResource(R.drawable.preescape);
+		if (startAnim)
+		{
+			startAnim = false;
+
+			escapeImageView.setVisibility(View.GONE);
+			notEscapeImageView.setVisibility(View.GONE);
+			bShare.setVisibility(View.GONE);
+
+			escapeImageView.setImageResource(R.drawable.preescape);
 
 //		 при запуске начинаем с анимации исчезновения
-		escapeImageView.setVisibility(View.VISIBLE);
-		escapeImageView.startAnimation(mPreInAnimationLeft);
+			escapeImageView.setVisibility(View.VISIBLE);
+			escapeImageView.startAnimation(mPreInAnimationLeft);
 
-		preAnim = true;
+			preAnim = true;
 
-		new Handler().postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				notEscapeImageView.setImageResource(R.drawable.prenotescape);
-				notEscapeImageView.setVisibility(View.VISIBLE);
-				notEscapeImageView.startAnimation(mPreInAnimationRight);
-
-			}
-		}, 300);
-
-
-		new Handler().postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				preAnim = false;
-				countClick++;
-				escape();
-
-				if (countClick == 2)
+			new Handler().postDelayed(new Runnable()
+			{
+				@Override
+				public void run()
 				{
-					ImageButton bt = (ImageButton) viewMain.findViewById(R.id.button);
-					bt.setImageResource(R.drawable.button);
-				}
-				bShare.setVisibility(View.VISIBLE);
+					notEscapeImageView.setImageResource(R.drawable.prenotescape);
+					notEscapeImageView.setVisibility(View.VISIBLE);
+					notEscapeImageView.startAnimation(mPreInAnimationRight);
 
-			}
-		}, 3000);
+				}
+			}, 300);
+
+
+			new Handler().postDelayed(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					preAnim = false;
+					startAnim = true;
+					countClick++;
+					escape();
+
+					if (countClick == 2)
+					{
+						ImageButton bt = (ImageButton) viewMain.findViewById(R.id.button);
+						bt.setImageResource(R.drawable.button);
+					}
+					bShare.setVisibility(View.VISIBLE);
+
+				}
+			}, 3000);
+
+		}
 	}
 
 	/**
@@ -190,11 +203,11 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		final Bitmap screenshot = v1.getDrawingCache();
 
 		new VKShareDialogBuilder()
-				.setText("I created this post with VK Android SDK\nSee additional information below\n#vksdk")
+				.setText("А мы валим c пары.\n#пары")
 				.setAttachmentImages(new VKUploadImage[]{
 						new VKUploadImage(screenshot, VKImageParameters.pngImage())
 				})
-				.setAttachmentLink("VK Android SDK information", "https://vk.com/dima_nofficial")
+				.setAttachmentLink("Свалить ли с пары", "https://play.google.com/store/apps/details?id=ru.n_develop.escape_from_lesson")
 				.setShareDialogListener(new VKShareDialog.VKShareDialogListener()
 				{
 					@Override
