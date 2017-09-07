@@ -10,6 +10,7 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.ShareActionProvider;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -196,11 +197,21 @@ public class MainFragment extends Fragment implements View.OnClickListener
 
 
 
-			String file_path = Environment.getExternalStorageDirectory().getAbsolutePath() +
-					"/ru.n_develop.escape_from_lesson";
+
+			String file_path = Environment.DIRECTORY_PICTURES +
+					"/scanner";
+//					"/ru.n_develop.escape_from_lesson/";
+
+			Log.e("khllkj", file_path);
 			File dir = new File(file_path);
 			if(!dir.exists())
-				dir.mkdirs();
+			{
+				Boolean success = dir.mkdirs();
+				Log.e("suc", success.toString());
+			}
+			Log.e("folder", dir.getName());
+
+
 			File file = new File(dir, "screenshot.png");
 			FileOutputStream fOut;
 			try {
