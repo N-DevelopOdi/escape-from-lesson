@@ -1,11 +1,17 @@
 package ru.n_develop.escape_from_lesson;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -26,6 +32,9 @@ import com.vk.sdk.api.photo.VKUploadImage;
 import com.vk.sdk.dialogs.VKShareDialog;
 import com.vk.sdk.dialogs.VKShareDialogBuilder;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Random;
 
 import ru.n_develop.escape_from_lesson.Helper.Connection;
@@ -60,6 +69,8 @@ public class MainFragment extends Fragment implements View.OnClickListener
 			VKScope.MESSAGES,
 			VKScope.DOCS
 	};
+
+	Intent shareIntent;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -166,29 +177,77 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	{
 		if (Connection.hasConnection(MainFragment.this.getContext()))
 		{
-			if (!VKSdk.isLoggedIn())
-			{
-				VKSdk.login(MainFragment.this.getActivity(), sMyScope);
+
+			View v1 = view1.getRootView();
+			v1.setDrawingCacheEnabled(false);
+			v1.setDrawingCacheEnabled(true);
+
+			final Bitmap screenshot = v1.getDrawingCache();
+
+//			//Convert to byte array
+//			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+////			screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream);
+//			byte[] byteArray = stream.toByteArray();
+//			Uri imageUri = Uri.parse("android.resource://" + "ru.n_develop.escape_from_lesson"
+//					+ "/drawable/" + "bg2");
+//
+//			String pathofBmp = MediaStore.Images.Media.insertImage(this.getContext().getContentResolver(), screenshot,"title", null);
+//			Uri bmpUri = Uri.parse(pathofBmp);
+
+
+
+			String file_path = Environment.getExternalStorageDirectory().getAbsolutePath() +
+					"/ru.n_develop.escape_from_lesson";
+			File dir = new File(file_path);
+			if(!dir.exists())
+				dir.mkdirs();
+			File file = new File(dir, "screenshot.png");
+			FileOutputStream fOut;
+			try {
+				fOut = new FileOutputStream(file);
+				screenshot.compress(Bitmap.CompressFormat.PNG, 85, fOut);
+				fOut.flush();
+				fOut.close();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 
-				VKSdk.wakeUpSession(MainFragment.this.getContext(), new VKCallback<VKSdk.LoginState>()
-				{
-					@Override
-					public void onResult(VKSdk.LoginState res)
-					{
-						switch (res)
-						{
-							case LoggedIn:
-								Share();
-						}
-					}
+			Uri uri = Uri.fromFile(file);
 
-					@Override
-					public void onError(VKError error)
-					{
+			shareIntent = new Intent(android.content.Intent.ACTION_SEND);
+			shareIntent.setType("*/*");
+			shareIntent.putExtra(Intent.EXTRA_SUBJECT, "MY APP");
+			shareIntent.putExtra(Intent.EXTRA_TEXT, "А мы валим c пары.\n" + "Свалить ли с пары " + "https://play.google.com/store/apps/details?id=ru.n_develop.escape_from_lesson");
+			shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+			shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			startActivity(Intent.createChooser(shareIntent,"share via"));
 
-					}
-				});
+
+
+//			if (!VKSdk.isLoggedIn())
+//			{
+//				VKSdk.login(MainFragment.this.getActivity(), sMyScope);
+//			}
+//
+//				VKSdk.wakeUpSession(MainFragment.this.getContext(), new VKCallback<VKSdk.LoginState>()
+//				{
+//					@Override
+//					public void onResult(VKSdk.LoginState res)
+//					{
+//						switch (res)
+//						{
+//							case LoggedIn:
+//								Share();
+//						}
+//					}
+//
+//					@Override
+//					public void onError(VKError error)
+//					{
+//
+//					}
+//				});
 
 		}
 	}
@@ -196,39 +255,44 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	public void Share ()
 	{
 
-		View v1 = view1.getRootView();
-		v1.setDrawingCacheEnabled(false);
-		v1.setDrawingCacheEnabled(true);
 
-		final Bitmap screenshot = v1.getDrawingCache();
 
-		new VKShareDialogBuilder()
-				.setText("А мы валим c пары.\n#пары")
-				.setAttachmentImages(new VKUploadImage[]{
-						new VKUploadImage(screenshot, VKImageParameters.pngImage())
-				})
-				.setAttachmentLink("Свалить ли с пары", "https://play.google.com/store/apps/details?id=ru.n_develop.escape_from_lesson")
-				.setShareDialogListener(new VKShareDialog.VKShareDialogListener()
-				{
-					@Override
-					public void onVkShareComplete(int postId)
-					{
-						recycleBitmap(screenshot);
-					}
 
-					@Override
-					public void onVkShareCancel()
-					{
-						recycleBitmap(screenshot);
-					}
 
-					@Override
-					public void onVkShareError(VKError error)
-					{
-						recycleBitmap(screenshot);
-					}
-				})
-				.show(getFragmentManager(), "VK_SHARE_DIALOG");
+
+//		View v1 = view1.getRootView();
+//		v1.setDrawingCacheEnabled(false);
+//		v1.setDrawingCacheEnabled(true);
+//
+//		final Bitmap screenshot = v1.getDrawingCache();
+//
+//		new VKShareDialogBuilder()
+//				.setText("А мы валим c пары.\n")
+//				.setAttachmentImages(new VKUploadImage[]{
+//						new VKUploadImage(screenshot, VKImageParameters.pngImage())
+//				})
+//				.setAttachmentLink("Свалить ли с пары", "https://play.google.com/store/apps/details?id=ru.n_develop.escape_from_lesson")
+//				.setShareDialogListener(new VKShareDialog.VKShareDialogListener()
+//				{
+//					@Override
+//					public void onVkShareComplete(int postId)
+//					{
+//						recycleBitmap(screenshot);
+//					}
+//
+//					@Override
+//					public void onVkShareCancel()
+//					{
+//						recycleBitmap(screenshot);
+//					}
+//
+//					@Override
+//					public void onVkShareError(VKError error)
+//					{
+//						recycleBitmap(screenshot);
+//					}
+//				})
+//				.show(getFragmentManager(), "VK_SHARE_DIALOG");
 	}
 
 	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener()
