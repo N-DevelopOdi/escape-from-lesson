@@ -1,18 +1,15 @@
 package ru.n_develop.escape_from_lesson;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.MediaStore;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -23,26 +20,17 @@ import android.widget.RelativeLayout;
 
 import com.appodeal.ads.Appodeal;
 
-import com.vk.sdk.VKCallback;
-import com.vk.sdk.VKScope;
-import com.vk.sdk.VKSdk;
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.model.VKPhotoArray;
-import com.vk.sdk.api.photo.VKImageParameters;
-import com.vk.sdk.api.photo.VKUploadImage;
-import com.vk.sdk.dialogs.VKShareDialog;
-import com.vk.sdk.dialogs.VKShareDialogBuilder;
-
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.Random;
 
 import ru.n_develop.escape_from_lesson.Helper.Connection;
+import ru.n_develop.escape_from_lesson.Helper.DBHelper;
+import ru.n_develop.escape_from_lesson.Helper.ZaprosPhp;
 
 public class MainFragment extends Fragment implements View.OnClickListener
 {
-
 	private ImageView escapeImageView;
 	private ImageView notEscapeImageView;
 
@@ -62,20 +50,20 @@ public class MainFragment extends Fragment implements View.OnClickListener
 
 	public RelativeLayout view1;
 
-	private static final String[] sMyScope = new String[]{
-			VKScope.FRIENDS,
-			VKScope.WALL,
-			VKScope.PHOTOS,
-			VKScope.NOHTTPS,
-			VKScope.MESSAGES,
-			VKScope.DOCS
-	};
-
 	Intent shareIntent;
+	String shareText;
+	private ZaprosPhp Zapros1;
+
+
+	DBHelper dbHelper;
+	SQLiteDatabase database;
+	String idUser;
+	Integer isSend;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
+
 		viewMain = inflater.inflate(R.layout.fragment_main, container, false);
 		viewMain.findViewById(R.id.button).setOnClickListener(this);
 		viewMain.findViewById(R.id.buttonShare).setOnClickListener(this);
@@ -103,13 +91,21 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		mPreInAnimationRight.setAnimationListener(animationPreInListenerRight);
         mPreOutAnimationRight.setAnimationListener(animationPreOutListenerRight);
 
+		dbHelper = new DBHelper(viewMain.getContext());
+		database = dbHelper.getWritableDatabase();
 
 		return viewMain;
 	}
 
 	public void onClick (final View view)
 	{
-		switch (view.getId())
+		this.__isStart();
+		if (Connection.hasConnection(MainFragment.this.getContext()) && isSend != 1)
+		{
+			this.__sendRegistration();
+		}
+
+			switch (view.getId())
 		{
 			case R.id.button: buttonEscape(); break;
 			case R.id.buttonShare: buttonShare(); break;
@@ -118,7 +114,6 @@ public class MainFragment extends Fragment implements View.OnClickListener
 
 	public void buttonEscape ()
 	{
-
 		if (startAnim)
 		{
 			startAnim = false;
@@ -147,7 +142,6 @@ public class MainFragment extends Fragment implements View.OnClickListener
 				}
 			}, 300);
 
-
 			new Handler().postDelayed(new Runnable()
 			{
 				@Override
@@ -164,146 +158,38 @@ public class MainFragment extends Fragment implements View.OnClickListener
 						bt.setImageResource(R.drawable.button);
 					}
 					bShare.setVisibility(View.VISIBLE);
-
 				}
 			}, 3000);
 
 		}
 	}
 
-	/**
-	 * роблема при первом заходе в вк
-	 */
 	public void buttonShare ()
 	{
 		if (Connection.hasConnection(MainFragment.this.getContext()))
 		{
-
 			View v1 = view1.getRootView();
 			v1.setDrawingCacheEnabled(false);
 			v1.setDrawingCacheEnabled(true);
 
 			final Bitmap screenshot = v1.getDrawingCache();
+			Uri uri = Uri.fromFile(this.SavePicture(screenshot));
 
-//			//Convert to byte array
-//			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-////			screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream);
-//			byte[] byteArray = stream.toByteArray();
-//			Uri imageUri = Uri.parse("android.resource://" + "ru.n_develop.escape_from_lesson"
-//					+ "/drawable/" + "bg2");
-//
-//			String pathofBmp = MediaStore.Images.Media.insertImage(this.getContext().getContentResolver(), screenshot,"title", null);
-//			Uri bmpUri = Uri.parse(pathofBmp);
-
-
-
-
-			String file_path = Environment.DIRECTORY_PICTURES +
-					"/scanner";
-//					"/ru.n_develop.escape_from_lesson/";
-
-			Log.e("khllkj", file_path);
-			File dir = new File(file_path);
-			if(!dir.exists())
-			{
-				Boolean success = dir.mkdirs();
-				Log.e("suc", success.toString());
-			}
-			Log.e("folder", dir.getName());
-
-
-			File file = new File(dir, "screenshot.png");
-			FileOutputStream fOut;
-			try {
-				fOut = new FileOutputStream(file);
-				screenshot.compress(Bitmap.CompressFormat.PNG, 85, fOut);
-				fOut.flush();
-				fOut.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			Uri uri = Uri.fromFile(file);
+			database.execSQL("UPDATE " + DBHelper.TABLE_SHARE +
+					" SET " + DBHelper.KEY_COUNT_SHARE + " = " + DBHelper.KEY_COUNT_SHARE + " + 1 " +
+					" WHERE 1" );
 
 			shareIntent = new Intent(android.content.Intent.ACTION_SEND);
 			shareIntent.setType("*/*");
-			shareIntent.putExtra(Intent.EXTRA_SUBJECT, "MY APP");
-			shareIntent.putExtra(Intent.EXTRA_TEXT, "А мы валим c пары.\n" + "Свалить ли с пары " + "https://play.google.com/store/apps/details?id=ru.n_develop.escape_from_lesson");
+//			shareIntent.putExtra(Intent.EXTRA_SUBJECT, "MY APP");
+//			shareIntent.putExtra(Intent.EXTRA_TEXT, shareText + "https://play.google.com/store/apps/details?id=ru.n_develop.escape_from_lesson" );
+			shareIntent.putExtra(Intent.EXTRA_TEXT, shareText + " #cвалитьлиспары " + "https://goo.gl/CmRAb2" );
 			shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
 			shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			startActivity(Intent.createChooser(shareIntent,"share via"));
 
-
-
-//			if (!VKSdk.isLoggedIn())
-//			{
-//				VKSdk.login(MainFragment.this.getActivity(), sMyScope);
-//			}
-//
-//				VKSdk.wakeUpSession(MainFragment.this.getContext(), new VKCallback<VKSdk.LoginState>()
-//				{
-//					@Override
-//					public void onResult(VKSdk.LoginState res)
-//					{
-//						switch (res)
-//						{
-//							case LoggedIn:
-//								Share();
-//						}
-//					}
-//
-//					@Override
-//					public void onError(VKError error)
-//					{
-//
-//					}
-//				});
-
+			startActivity(Intent.createChooser(shareIntent,"Поделиться"));
 		}
-	}
-
-	public void Share ()
-	{
-
-
-
-
-
-
-//		View v1 = view1.getRootView();
-//		v1.setDrawingCacheEnabled(false);
-//		v1.setDrawingCacheEnabled(true);
-//
-//		final Bitmap screenshot = v1.getDrawingCache();
-//
-//		new VKShareDialogBuilder()
-//				.setText("А мы валим c пары.\n")
-//				.setAttachmentImages(new VKUploadImage[]{
-//						new VKUploadImage(screenshot, VKImageParameters.pngImage())
-//				})
-//				.setAttachmentLink("Свалить ли с пары", "https://play.google.com/store/apps/details?id=ru.n_develop.escape_from_lesson")
-//				.setShareDialogListener(new VKShareDialog.VKShareDialogListener()
-//				{
-//					@Override
-//					public void onVkShareComplete(int postId)
-//					{
-//						recycleBitmap(screenshot);
-//					}
-//
-//					@Override
-//					public void onVkShareCancel()
-//					{
-//						recycleBitmap(screenshot);
-//					}
-//
-//					@Override
-//					public void onVkShareError(VKError error)
-//					{
-//						recycleBitmap(screenshot);
-//					}
-//				})
-//				.show(getFragmentManager(), "VK_SHARE_DIALOG");
 	}
 
 	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener()
@@ -467,6 +353,9 @@ public class MainFragment extends Fragment implements View.OnClickListener
 			notEscapeImageView.setVisibility(View.GONE);
 			notEscapeImageView.clearAnimation();
 			escapeBool = true;
+
+			shareText = "Мы валим c пары.\n" + "А что выпадет тебе? ";
+
 			int r = rand.nextInt(120)+1;
 			if (r <= 20)
 			{
@@ -515,6 +404,7 @@ public class MainFragment extends Fragment implements View.OnClickListener
 			escapeImageView.clearAnimation();
 
 			escapeBool = false;
+			shareText = "Остаемся на паре(\n" + "Мб тебе повезет? ";
 
 			int r = rand.nextInt(100)+1;
 			if (r <= 20)
@@ -550,9 +440,85 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		}
 	}
 
-	private static void recycleBitmap(@Nullable final Bitmap bitmap) {
-		if (bitmap != null) {
-			bitmap.recycle();
+    private File SavePicture(Bitmap bmp)
+    {
+        OutputStream fOut = null;
+		File dest = new File(this.getContext().getExternalCacheDir(), "efl");
+		boolean result = dest.mkdirs();
+		File file;
+		try {
+            file = new File(dest, System.currentTimeMillis()/1000 +".jpg"); // создать уникальное имя для файла основываясь на дате сохранения
+            fOut = new FileOutputStream(file);
+
+            bmp.compress(Bitmap.CompressFormat.JPEG, 85, fOut); // сохранять картинку в jpeg-формате с 85% сжатия.
+            fOut.flush();
+            fOut.close();
+			return file;
+        }
+        catch (Exception e) // здесь необходим блок отслеживания реальных ошибок и исключений, общий Exception приведен в качестве примера
+        {
+			return null;
+        }
+    }
+
+	private void __isStart ()
+	{
+		Cursor cursor = database.query(DBHelper.TABLE_START,
+				new String[]{DBHelper.KEY_ID, DBHelper.KEY_USER, DBHelper.KEY_IS_START, DBHelper.KEY_IS_SEND},
+				null,
+				null,
+				null, null, null);
+
+		if (cursor.moveToFirst())
+		{
+			int idIndex = cursor.getColumnIndex(DBHelper.KEY_ID);
+			int userIndex = cursor.getColumnIndex(DBHelper.KEY_USER);
+			int startIndex = cursor.getColumnIndex(DBHelper.KEY_IS_START);
+			int sendIndex = cursor.getColumnIndex(DBHelper.KEY_IS_SEND);
+
+			idUser = cursor.getString(userIndex);
+			isSend = cursor.getInt(sendIndex);
+			Log.e("sqlite idIndex = ", cursor.getString(idIndex));
+			Log.e("sqlite userIndex = ", cursor.getString(userIndex));
+			Log.e("sqlite startIndex = ", cursor.getString(startIndex));
+			Log.e("sqlite sendIndex = ", cursor.getString(sendIndex));
+
+			if (cursor.getInt(startIndex) == 0)
+			{
+				database.execSQL("UPDATE " + DBHelper.TABLE_START +
+						" SET " + DBHelper.KEY_IS_START + " = 1 " +
+						" WHERE " + DBHelper.KEY_USER  + " = " + idUser);
+			}
+		}
+	}
+
+	private void __sendRegistration()
+	{
+		Zapros1 = new ZaprosPhp();
+		Zapros1.start(idUser);
+
+
+		try
+		{
+			Zapros1.join();// ждем зовершения потока
+			Log.e("zapros = ", Integer.toString(Zapros1.getSuccess()));
+		}catch(InterruptedException ie)
+		{
+			Log.e("pass 0", ie.getMessage());
+		}
+
+		if (Zapros1.getSuccess() == 1)
+		{
+			database.execSQL("UPDATE " + DBHelper.TABLE_START +
+					" SET " + DBHelper.KEY_IS_SEND + " = 1 " +
+					" WHERE " + DBHelper.KEY_USER  + " = " + idUser);
 		}
 	}
 }
+
+
+/**
+ *
+ * Поделиться появляется когда нет инета
+ * При каждом нажатии на кнопку уходит сообщение в БД
+ */
