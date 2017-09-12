@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +26,7 @@ import java.util.Random;
 
 import ru.n_develop.escape_from_lesson.Helper.Connection;
 import ru.n_develop.escape_from_lesson.Helper.DBHelper;
+import ru.n_develop.escape_from_lesson.Helper.SendShare;
 import ru.n_develop.escape_from_lesson.Helper.ZaprosPhp;
 
 public class MainFragment extends Fragment implements View.OnClickListener
@@ -53,6 +53,7 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	Intent shareIntent;
 	String shareText;
 	private ZaprosPhp Zapros1;
+	private SendShare sendShare;
 
 
 	DBHelper dbHelper;
@@ -105,7 +106,9 @@ public class MainFragment extends Fragment implements View.OnClickListener
 			this.__sendRegistration();
 		}
 
-			switch (view.getId())
+		this.__sendShare();
+
+		switch (view.getId())
 		{
 			case R.id.button: buttonEscape(); break;
 			case R.id.buttonShare: buttonShare(); break;
@@ -166,30 +169,28 @@ public class MainFragment extends Fragment implements View.OnClickListener
 
 	public void buttonShare ()
 	{
-		if (Connection.hasConnection(MainFragment.this.getContext()))
-		{
-			View v1 = view1.getRootView();
-			v1.setDrawingCacheEnabled(false);
-			v1.setDrawingCacheEnabled(true);
+		View v1 = view1.getRootView();
+		v1.setDrawingCacheEnabled(false);
+		v1.setDrawingCacheEnabled(true);
 
-			final Bitmap screenshot = v1.getDrawingCache();
-			Uri uri = Uri.fromFile(this.SavePicture(screenshot));
+		final Bitmap screenshot = v1.getDrawingCache();
+		Uri uri = Uri.fromFile(this.SavePicture(screenshot));
 
-			database.execSQL("UPDATE " + DBHelper.TABLE_SHARE +
-					" SET " + DBHelper.KEY_COUNT_SHARE + " = " + DBHelper.KEY_COUNT_SHARE + " + 1 " +
-					" WHERE 1" );
+		database.execSQL("UPDATE " + DBHelper.TABLE_SHARE +
+				" SET " + DBHelper.KEY_COUNT_SHARE + " = " + DBHelper.KEY_COUNT_SHARE + " + 1 " +
+				" WHERE 1" );
 
-			shareIntent = new Intent(android.content.Intent.ACTION_SEND);
-			shareIntent.setType("*/*");
-//			shareIntent.putExtra(Intent.EXTRA_SUBJECT, "MY APP");
+		this.__sendShare();
+
+		shareIntent = new Intent(android.content.Intent.ACTION_SEND);
+		shareIntent.setType("*/*");
 //			shareIntent.putExtra(Intent.EXTRA_TEXT, shareText + "https://play.google.com/store/apps/details?id=ru.n_develop.escape_from_lesson" );
-			shareIntent.putExtra(Intent.EXTRA_TEXT, shareText + " #cвалитьлиспары " + "https://goo.gl/CmRAb2" );
-			shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
-			shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-			shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		shareIntent.putExtra(Intent.EXTRA_TEXT, shareText + " #cвалитьлиспары " + "https://goo.gl/CmRAb2" );
+		shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+		shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-			startActivity(Intent.createChooser(shareIntent,"Поделиться"));
-		}
+		startActivity(Intent.createChooser(shareIntent,"Поделиться"));
 	}
 
 	Animation.AnimationListener animationFadeInListener = new Animation.AnimationListener()
@@ -464,24 +465,19 @@ public class MainFragment extends Fragment implements View.OnClickListener
 	private void __isStart ()
 	{
 		Cursor cursor = database.query(DBHelper.TABLE_START,
-				new String[]{DBHelper.KEY_ID, DBHelper.KEY_USER, DBHelper.KEY_IS_START, DBHelper.KEY_IS_SEND},
+				new String[]{DBHelper.KEY_USER, DBHelper.KEY_IS_START, DBHelper.KEY_IS_SEND},
 				null,
 				null,
 				null, null, null);
 
 		if (cursor.moveToFirst())
 		{
-			int idIndex = cursor.getColumnIndex(DBHelper.KEY_ID);
 			int userIndex = cursor.getColumnIndex(DBHelper.KEY_USER);
 			int startIndex = cursor.getColumnIndex(DBHelper.KEY_IS_START);
 			int sendIndex = cursor.getColumnIndex(DBHelper.KEY_IS_SEND);
 
 			idUser = cursor.getString(userIndex);
 			isSend = cursor.getInt(sendIndex);
-			Log.e("sqlite idIndex = ", cursor.getString(idIndex));
-			Log.e("sqlite userIndex = ", cursor.getString(userIndex));
-			Log.e("sqlite startIndex = ", cursor.getString(startIndex));
-			Log.e("sqlite sendIndex = ", cursor.getString(sendIndex));
 
 			if (cursor.getInt(startIndex) == 0)
 			{
@@ -501,10 +497,8 @@ public class MainFragment extends Fragment implements View.OnClickListener
 		try
 		{
 			Zapros1.join();// ждем зовершения потока
-			Log.e("zapros = ", Integer.toString(Zapros1.getSuccess()));
 		}catch(InterruptedException ie)
 		{
-			Log.e("pass 0", ie.getMessage());
 		}
 
 		if (Zapros1.getSuccess() == 1)
@@ -514,11 +508,45 @@ public class MainFragment extends Fragment implements View.OnClickListener
 					" WHERE " + DBHelper.KEY_USER  + " = " + idUser);
 		}
 	}
+
+	private void __sendShare()
+	{
+		if (Connection.hasConnection(MainFragment.this.getContext()))
+		{
+			Cursor cursor = database.query(DBHelper.TABLE_SHARE,
+					new String[]{DBHelper.KEY_ID, DBHelper.KEY_USER, DBHelper.KEY_COUNT_SHARE},
+					null,
+					null,
+					null, null, null);
+
+			if (cursor.moveToFirst())
+			{
+				int userIndex = cursor.getColumnIndex(DBHelper.KEY_USER);
+				int shareIndex = cursor.getColumnIndex(DBHelper.KEY_COUNT_SHARE);
+
+				idUser = cursor.getString(userIndex);
+
+				if (cursor.getInt(shareIndex) > 0)
+				{
+					sendShare = new SendShare();
+					sendShare.start(idUser, cursor.getString(shareIndex));
+
+					try
+					{
+						sendShare.join();// ждем зовершения потока
+					}
+					catch (InterruptedException ie)
+					{
+					}
+
+					if (sendShare.getSuccess() == 1)
+					{
+						database.execSQL("UPDATE " + DBHelper.TABLE_SHARE +
+								" SET " + DBHelper.KEY_COUNT_SHARE + " = 0 " +
+								" WHERE " + DBHelper.KEY_USER + " = " + idUser);
+					}
+				}
+			}
+		}
+	}
 }
-
-
-/**
- *
- * Поделиться появляется когда нет инета
- * При каждом нажатии на кнопку уходит сообщение в БД
- */

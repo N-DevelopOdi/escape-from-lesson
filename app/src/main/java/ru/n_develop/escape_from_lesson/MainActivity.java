@@ -3,7 +3,6 @@ package ru.n_develop.escape_from_lesson;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.appodeal.ads.Appodeal;
 
@@ -46,14 +45,12 @@ public class MainActivity extends AppCompatActivity
 		VKCallback<VKAccessToken> callback = new VKCallback<VKAccessToken>() {
 			@Override
 			public void onResult(VKAccessToken res) {
-				Log.e("onResult","onResult");
 				getSupportFragmentManager().findFragmentById(R.id.fragment_main);
 				mf.buttonShare();
 			}
 
 			@Override
 			public void onError(VKError error) {
-				Log.e("onError","onError");
 
 				// User didn't pass Authorization
 			}

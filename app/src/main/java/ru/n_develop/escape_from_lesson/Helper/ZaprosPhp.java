@@ -1,7 +1,5 @@
 package ru.n_develop.escape_from_lesson.Helper;
 
-import android.util.Log;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -44,10 +42,8 @@ public class ZaprosPhp extends Thread
             HttpResponse response = httpclient.execute(httppost);
             HttpEntity entity = response.getEntity();
             is = entity.getContent();
-            Log.e("pass 1", "connection success "+ id);
         } catch (Exception e)
         {
-            Log.e("Fail 1", e.toString());
         }
 
         // получаем ответ от php запроса в формате json
@@ -60,10 +56,8 @@ public class ZaprosPhp extends Thread
             }
             is.close();
             result = sb.toString();
-            Log.e("pass 2", "connection success" + result);
         } catch (Exception e)
         {
-            Log.e("Fail 2", e.toString());
         }
 
         // обрабатываем полученный json
@@ -71,7 +65,6 @@ public class ZaprosPhp extends Thread
         {
             JSONObject json_data = new JSONObject(result);
             success=(json_data.getInt("success"));
-            Log.e("pass 3",Integer.toString(success));
             if (success == 1)
             {
 
@@ -79,7 +72,6 @@ public class ZaprosPhp extends Thread
         }
         catch(Exception e)
         {
-            Log.e("Fail 3", e.toString());
         }
     }
 

@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.provider.Settings;
 
 /**
  * Created by dim90 on 0909.2017.
@@ -32,6 +31,7 @@ public class DBHelper extends SQLiteOpenHelper
      */
     // _ нужен для работы с курсорами, это особенность android
 //    public static final String KEY_ID= "_id";
+//    public static final String KEY_USER = "user";
     public static final String KEY_COUNT_SHARE = "count";
 //    public static final String KEY_IS_SEND = "is_send";
 
@@ -76,8 +76,8 @@ public class DBHelper extends SQLiteOpenHelper
                 KEY_IS_SEND + " integer) "
         );
 
-        contentValuesStart.put(KEY_USER, time);
-        contentValuesShare.put(KEY_IS_START, 0);
+        contentValuesShare.put(KEY_USER, time);
+        contentValuesShare.put(KEY_COUNT_SHARE, 0);
         contentValuesShare.put(KEY_IS_SEND, 0);
 
         db.insert(TABLE_SHARE, null, contentValuesShare);

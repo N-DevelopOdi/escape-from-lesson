@@ -26,9 +26,9 @@ dependencies {
     })
     compile project(':cheetah-mobile-3.4.7')
     compile project(':vksdk_library')
-    compile 'com.android.support:appcompat-v7:25.0.1'
-    compile 'com.google.android.gms:play-services-ads:9.8.0'
-    compile 'com.google.android.gms:play-services-location:9.8.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.google.android.gms:play-services-ads:11.0.2'
+    compile 'com.google.android.gms:play-services-location:11.0.2'
     testCompile 'junit:junit:4.12'
     compile files('libs/appodeal-1.15.9.jar')
     apk files('libs/flurry-analytics-6.5.0.jar')

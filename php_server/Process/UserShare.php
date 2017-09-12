@@ -27,10 +27,6 @@ class UserShare implements Process
 
 	public function run($data)
 	{
-		$data['user'] = "1234";
-		$data['share'] = 3;
-
-
 		$this->connect = new BaseConnect();
 		try
 		{
