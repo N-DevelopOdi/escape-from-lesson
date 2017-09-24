@@ -1,3 +1,5 @@
 <resources>
 	<string name="app_name">Свалить ли с пары?</string>
+
+	<integer name="com_vk_sdk_AppId">6109187</integer>
 </resources>
